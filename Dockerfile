@@ -5,7 +5,7 @@ ARG BASE_IMAGE=pytorch/pytorch:2.10.0-cuda13.0-cudnn9-runtime
 FROM ${BASE_IMAGE} AS base
 
 # Build arguments for this stage with sensible defaults for standalone builds
-ARG COMFYUI_VERSION=latest
+ARG COMFYUI_VERSION=0.15.1
 ARG CUDA_VERSION_FOR_COMFY=
 
 # Prevents prompts from packages asking for user input during installation

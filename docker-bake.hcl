@@ -11,7 +11,7 @@ variable "RELEASE_VERSION" {
 }
 
 variable "COMFYUI_VERSION" {
-  default = "latest"
+  default = "0.15.1"
 }
 
 # Global defaults for standard CUDA 13.0 images
