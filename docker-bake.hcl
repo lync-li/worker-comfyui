@@ -14,13 +14,13 @@ variable "COMFYUI_VERSION" {
   default = "latest"
 }
 
-# Global defaults for standard CUDA 13.0 images
+# Global defaults for standard CUDA 12.6.3 images
 variable "BASE_IMAGE" {
-  default = "pytorch/pytorch:2.10.0-cuda13.0-cudnn9-runtime"
+  default = "nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04"
 }
 
 variable "CUDA_VERSION_FOR_COMFY" {
-  default = ""
+  default = "12.6"
 }
 
 variable "ENABLE_PYTORCH_UPGRADE" {
