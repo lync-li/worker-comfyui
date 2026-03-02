@@ -6,7 +6,7 @@ FROM ${BASE_IMAGE} AS base
 
 # Build arguments for this stage with sensible defaults for standalone builds
 ARG COMFYUI_VERSION=0.15.1
-ARG CUDA_VERSION_FOR_COMFY=
+ARG COMFYUI_GIT_REF
 
 # Prevents prompts from packages asking for user input during installation
 ENV DEBIAN_FRONTEND=noninteractive
@@ -20,7 +20,6 @@ ENV CMAKE_BUILD_PARALLEL_LEVEL=8
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     git \
-    wget \
     libgl1 \
     libglib2.0-0 \
     libsm6 \
@@ -28,13 +27,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxrender1 \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/* \
+    && git clone --depth 1 --branch "${COMFYUI_GIT_REF:-v${COMFYUI_VERSION}}" https://github.com/comfyanonymous/ComfyUI /comfyui \
     && python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
     && python -m pip install --no-cache-dir comfy-cli \
-    && if [ -n "${CUDA_VERSION_FOR_COMFY}" ]; then \
-         /usr/bin/yes | comfy --workspace /comfyui install --version "${COMFYUI_VERSION}" --cuda-version "${CUDA_VERSION_FOR_COMFY}" --nvidia; \
-       else \
-         /usr/bin/yes | comfy --workspace /comfyui install --version "${COMFYUI_VERSION}" --nvidia; \
-       fi \
+    && grep -vE '^[[:space:]]*(torch|torchvision|torchaudio|xformers|triton|nvidia-)' /comfyui/requirements.txt > /tmp/requirements.no_torch.txt \
+    && python -m pip install --no-cache-dir -r /tmp/requirements.no_torch.txt \
     && python -m pip install --no-cache-dir runpod requests websocket-client \
     && apt-get purge -y --auto-remove git \
     && apt-get clean -y \
