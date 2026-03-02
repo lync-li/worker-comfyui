@@ -17,8 +17,8 @@ ENV PYTHONUNBUFFERED=1
 # Speed up some cmake builds
 ENV CMAKE_BUILD_PARALLEL_LEVEL=8
 
-# Install git and other necessary tools
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
     git \
     wget \
     libgl1 \
@@ -26,29 +26,19 @@ RUN apt-get update && apt-get install -y \
     libsm6 \
     libxext6 \
     libxrender1 \
-    ffmpeg
-
-# Clean up to reduce image size
-RUN apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
-
-# Install uv (latest) using official installer and create isolated venv
-RUN wget -qO- https://astral.sh/uv/install.sh | sh \
-    && ln -sf /root/.local/bin/uv /usr/local/bin/uv \
-    && ln -sf /root/.local/bin/uvx /usr/local/bin/uvx \
-    && uv venv /opt/venv
-
-# Use the virtual environment for all subsequent commands
-ENV PATH="/opt/venv/bin:${PATH}"
-
-# Install comfy-cli + dependencies needed by it to install ComfyUI
-RUN uv pip install comfy-cli pip setuptools wheel
-
-# Install ComfyUI
-RUN if [ -n "${CUDA_VERSION_FOR_COMFY}" ]; then \
-      /usr/bin/yes | comfy --workspace /comfyui install --version "${COMFYUI_VERSION}" --cuda-version "${CUDA_VERSION_FOR_COMFY}" --nvidia; \
-    else \
-      /usr/bin/yes | comfy --workspace /comfyui install --version "${COMFYUI_VERSION}" --nvidia; \
-    fi
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/* \
+    && python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && python -m pip install --no-cache-dir comfy-cli \
+    && if [ -n "${CUDA_VERSION_FOR_COMFY}" ]; then \
+         /usr/bin/yes | comfy --workspace /comfyui install --version "${COMFYUI_VERSION}" --cuda-version "${CUDA_VERSION_FOR_COMFY}" --nvidia; \
+       else \
+         /usr/bin/yes | comfy --workspace /comfyui install --version "${COMFYUI_VERSION}" --nvidia; \
+       fi \
+    && python -m pip install --no-cache-dir runpod requests websocket-client \
+    && apt-get purge -y --auto-remove git \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
 
 
 # Change working directory to ComfyUI
@@ -59,9 +49,6 @@ ADD src/extra_model_paths.yaml ./
 
 # Go back to the root
 WORKDIR /
-
-# Install Python runtime dependencies for the handler
-RUN uv pip install runpod requests websocket-client
 
 # Add application code and scripts
 ADD src/start.sh src/network_volume.py handler.py test_input.json ./
