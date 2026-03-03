@@ -1,12 +1,12 @@
 # Build argument for base image selection
-ARG BASE_IMAGE=nvidia/cuda:13.0.2-cudnn-runtime-ubuntu24.04
+ARG BASE_IMAGE=nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04
 
 # Stage 1: Base image with common dependencies
 FROM ${BASE_IMAGE} AS base
 
 # Build arguments for this stage with sensible defaults for standalone builds
 ARG COMFYUI_VERSION=0.15.1
-ARG CUDA_VERSION_FOR_COMFY=
+ARG CUDA_VERSION_FOR_COMFY=12.8
 ARG ENABLE_PYTORCH_UPGRADE=false
 ARG PYTORCH_INDEX_URL
 ARG MODEL_TYPE=base
